@@ -208,6 +208,7 @@ function exportData() {
   padding: var(--space-8) var(--space-6);
   max-width: 1200px;
   margin: 0 auto;
+  padding-bottom: calc(var(--space-8) + max(0px, var(--safe-area-inset-bottom)));
 }
 
 /* ========================================
@@ -371,6 +372,8 @@ function exportData() {
   cursor: pointer;
   transition: all var(--transition-fast);
   min-width: 80px;
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .theme-btn:hover {
@@ -425,6 +428,8 @@ function exportData() {
   color: var(--text-tertiary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .density-btn:hover {
@@ -487,6 +492,8 @@ function exportData() {
   color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .action-btn:hover {
@@ -577,6 +584,11 @@ function exportData() {
 }
 
 @media (max-width: 640px) {
+  .settings-view {
+    padding: var(--space-6) var(--space-4);
+    padding-bottom: calc(var(--space-6) + max(0px, var(--safe-area-inset-bottom)));
+  }
+
   .header-title {
     font-size: var(--text-3xl);
   }
@@ -604,6 +616,32 @@ function exportData() {
 
   .about-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .theme-btn:active,
+  .density-btn:active,
+  .action-btn:active {
+    transform: scale(0.96);
+  }
+
+  .theme-btn:active {
+    background: var(--bg-secondary);
+  }
+
+  .density-btn:active {
+    background: var(--bg-secondary);
+  }
+
+  .action-btn:active {
+    background: var(--bg-secondary);
+  }
+
+  .action-btn.danger:active {
+    background: var(--status-critical);
+    color: var(--bg-primary);
   }
 }
 </style>

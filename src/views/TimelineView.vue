@@ -208,6 +208,7 @@ function getPriorityColor(priority: string): string {
   padding: var(--space-8) var(--space-6);
   max-width: 1200px;
   margin: 0 auto;
+  padding-bottom: calc(var(--space-8) + max(0px, var(--safe-area-inset-bottom)));
 }
 
 /* ========================================
@@ -271,6 +272,8 @@ function getPriorityColor(priority: string): string {
   color: var(--text-tertiary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .range-btn:hover {
@@ -369,6 +372,8 @@ function getPriorityColor(priority: string): string {
   gap: var(--space-5);
   cursor: pointer;
   transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .timeline-task:hover {
@@ -546,6 +551,11 @@ function getPriorityColor(priority: string): string {
 }
 
 @media (max-width: 640px) {
+  .timeline-view {
+    padding: var(--space-6) var(--space-4);
+    padding-bottom: calc(var(--space-6) + max(0px, var(--safe-area-inset-bottom)));
+  }
+
   .header-title {
     font-size: var(--text-3xl);
   }
@@ -570,6 +580,24 @@ function getPriorityColor(priority: string): string {
 
   .task-content {
     width: 100%;
+  }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .range-btn:active,
+  .timeline-task:active {
+    transform: scale(0.96);
+  }
+
+  .range-btn:active {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+  }
+
+  .timeline-task:active .task-content {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-secondary);
   }
 }
 </style>

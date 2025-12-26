@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
 import {
@@ -12,7 +12,9 @@ import {
   PlusIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  NewspaperIcon
+  NewspaperIcon,
+  Bars3Icon,
+  XMarkIcon
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
@@ -20,6 +22,7 @@ const uiStore = useUIStore()
 
 const isDarkMode = computed(() => uiStore.isDarkMode)
 const isSidebarExpanded = computed(() => uiStore.isSidebarExpanded)
+const isMobileMenuOpen = ref(false)
 const showCommandPalette = computed(() => uiStore.uiState.showCommandPalette)
 
 const currentRoute = computed(() => router.currentRoute.value.name)
@@ -62,10 +65,15 @@ onUnmounted(() => {
 
 function navigateTo(routeName: string) {
   router.push({ name: routeName })
+  isMobileMenuOpen.value = false
 }
 
 function toggleSidebar() {
   uiStore.toggleSidebar()
+}
+
+function toggleMobileMenu() {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 </script>
 
@@ -75,6 +83,10 @@ function toggleSidebar() {
     <header class="masthead">
       <div class="masthead-content">
         <div class="masthead-brand">
+          <button class="mobile-menu-toggle" @click="toggleMobileMenu" :aria-label="isMobileMenuOpen ? 'Close Menu' : 'Open Menu'" :aria-expanded="isMobileMenuOpen ? 'true' : 'false'">
+            <Bars3Icon v-if="!isMobileMenuOpen" />
+            <XMarkIcon v-else />
+          </button>
           <NewspaperIcon class="masthead-icon" />
           <div class="masthead-text">
             <h1 class="masthead-title">Task Command</h1>
@@ -91,7 +103,7 @@ function toggleSidebar() {
 
     <div class="app-layout">
       <!-- Magazine-style Sidebar -->
-      <aside class="sidebar" :class="{ 'collapsed': !isSidebarExpanded }">
+      <aside class="sidebar" :class="{ 'collapsed': !isSidebarExpanded, 'mobile-open': isMobileMenuOpen }">
         <div class="sidebar-header">
           <button
             class="sidebar-toggle"
@@ -142,6 +154,28 @@ function toggleSidebar() {
         </div>
       </main>
     </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+      <a
+        v-for="route in navRoutes.slice(0, 4)"
+        :key="route.name"
+        class="mobile-nav-item"
+        :class="{ active: currentRoute === route.name }"
+        @click="navigateTo(route.name as string)"
+        :aria-current="currentRoute === route.name ? 'page' : undefined"
+      >
+        <component :is="route.icon" class="mobile-nav-icon" />
+        <span class="mobile-nav-label">{{ route.label }}</span>
+      </a>
+      <button class="mobile-nav-item action" @click="uiStore.setQuickAddVisible(true)" aria-label="Add new task">
+        <PlusIcon class="mobile-nav-icon" />
+        <span class="mobile-nav-label">Add</span>
+      </button>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div v-if="isMobileMenuOpen" class="mobile-overlay" @click="isMobileMenuOpen = false"></div>
 
     <!-- Command Palette Modal - Magazine Style -->
     <div v-if="showCommandPalette" class="modal-overlay" @click="uiStore.setCommandPaletteVisible(false)">
@@ -203,7 +237,7 @@ function toggleSidebar() {
 .masthead {
   background: var(--bg-elevated);
   border-bottom: 3px solid var(--text-primary);
-  padding: var(--space-6) var(--space-8);
+  padding: var(--space-4) var(--space-8);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -222,6 +256,29 @@ function toggleSidebar() {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+}
+
+.mobile-menu-toggle {
+  display: none;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.mobile-menu-toggle:hover,
+.mobile-menu-toggle:active {
+  background: var(--bg-tertiary);
+}
+
+.mobile-menu-toggle svg {
+  width: 24px;
+  height: 24px;
 }
 
 .masthead-icon {
@@ -744,37 +801,206 @@ function toggleSidebar() {
 
 @media (max-width: 768px) {
   .masthead {
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .masthead-content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .masthead-title {
-    font-size: var(--text-2xl);
+    font-size: var(--text-xl);
+  }
+
+  .masthead-subtitle {
+    font-size: var(--text-xs);
   }
 
   .masthead-icon {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .masthead-meta {
+    display: none;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .masthead {
+    padding: var(--space-3) var(--space-4);
+    padding-top: max(var(--space-3), var(--safe-area-inset-top));
+  }
+
+  .app-layout {
+    flex-direction: column;
   }
 
   .sidebar {
     position: fixed;
-    left: -80px;
-    width: 80px;
-    height: calc(100vh - 80px);
-    top: 80px;
-    z-index: 60;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    top: 0;
+    z-index: 100;
+    transition: left var(--transition-base);
+    box-shadow: var(--shadow-xl);
   }
 
   .sidebar.mobile-open {
     left: 0;
   }
 
+  .sidebar-header {
+    padding: var(--space-4);
+  }
+
+  .sidebar-toggle {
+    display: none;
+  }
+
+  .sidebar-heading {
+    display: block !important;
+  }
+
+  .nav-label {
+    display: block !important;
+  }
+
   .main-content {
-    margin-left: 0;
+    padding-bottom: 70px; /* Space for bottom nav */
+  }
+
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(64px + max(0px, var(--safe-area-inset-bottom)));
+    background: var(--bg-elevated);
+    border-top: 2px solid var(--text-primary);
+    z-index: 50;
+    padding: 0 var(--space-2);
+    padding-bottom: max(var(--space-2), var(--safe-area-inset-bottom));
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    color: var(--text-tertiary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: var(--touch-target-min);
+    position: relative;
+  }
+
+  .mobile-nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 40%;
+    height: 3px;
+    background: var(--accent-primary);
+    transition: transform var(--transition-fast);
+  }
+
+  .mobile-nav-item.active {
+    color: var(--accent-primary);
+  }
+
+  .mobile-nav-item.active::after {
+    transform: translateX(-50%) scaleX(1);
+  }
+
+  .mobile-nav-item.action {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    margin: var(--space-2);
+    border-radius: var(--radius-md);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .mobile-nav-item.action:active {
+    transform: scale(0.95);
+  }
+
+  .mobile-nav-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform var(--transition-fast);
+  }
+
+  .mobile-nav-item:active .mobile-nav-icon {
+    transform: scale(0.9);
+  }
+
+  .mobile-nav-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.5px;
+  }
+
+  .mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 90;
+    animation: fadeIn var(--transition-base);
+  }
+
+  /* Improved sidebar animation on mobile */
+  .sidebar {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .command-palette {
-    max-width: 90%;
+    max-width: 95%;
+    margin: 0 var(--space-2);
+  }
+}
+
+.mobile-nav {
+  display: none;
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-nav-item {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item:active {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+  }
+
+  .mobile-nav-item.action:active {
+    background: var(--text-primary);
   }
 }
 </style>

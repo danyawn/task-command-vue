@@ -171,12 +171,18 @@ function onClick() {
   transition: all var(--transition-base);
   user-select: none;
   position: relative;
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .task-card:hover {
   border-color: var(--accent-secondary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+}
+
+.task-card:active {
+  transform: scale(0.98);
 }
 
 .task-card.is-dragging {
@@ -445,6 +451,7 @@ function onClick() {
 @media (max-width: 640px) {
   .task-card {
     padding: var(--space-4);
+    min-height: var(--touch-target-min);
   }
 
   .card-title {
@@ -453,6 +460,33 @@ function onClick() {
 
   .card-excerpt {
     font-size: var(--text-xs);
+  }
+
+  .progress-track {
+    height: 6px;
+  }
+
+  .tag {
+    padding: var(--space-1) var(--space-2);
+  }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .task-card {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .task-card:active {
+    transform: scale(0.96);
+    box-shadow: var(--shadow-md);
+  }
+
+  .priority-badge,
+  .tag {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
   }
 }
 </style>

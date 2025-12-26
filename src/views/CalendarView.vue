@@ -238,6 +238,7 @@ function getPriorityColor(priority: string): string {
   padding: var(--space-8) var(--space-6);
   max-width: 1400px;
   margin: 0 auto;
+  padding-bottom: calc(var(--space-8) + max(0px, var(--safe-area-inset-bottom)));
 }
 
 /* ========================================
@@ -267,6 +268,9 @@ function getPriorityColor(priority: string): string {
   cursor: pointer;
   transition: all var(--transition-fast);
   flex-shrink: 0;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .nav-btn:hover {
@@ -359,6 +363,8 @@ function getPriorityColor(priority: string): string {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  min-width: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .calendar-day:hover:not(.is-empty) {
@@ -474,6 +480,8 @@ function getPriorityColor(priority: string): string {
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .day-task-item:hover {
@@ -579,12 +587,40 @@ function getPriorityColor(priority: string): string {
 }
 
 @media (max-width: 480px) {
+  .calendar-view {
+    padding: var(--space-4) var(--space-3);
+    padding-bottom: calc(var(--space-4) + max(0px, var(--safe-area-inset-bottom)));
+  }
+
   .day-header {
     font-size: 10px;
   }
 
   .calendar-day {
     min-height: 50px;
+    min-width: var(--touch-target-min);
+  }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .nav-btn:active,
+  .calendar-day:active,
+  .day-task-item:active {
+    transform: scale(0.96);
+  }
+
+  .nav-btn:active {
+    background: var(--bg-tertiary);
+  }
+
+  .calendar-day:active {
+    background: var(--bg-secondary);
+  }
+
+  .day-task-item:active {
+    background: var(--bg-secondary);
+    transform: translateX(2px);
   }
 }
 </style>

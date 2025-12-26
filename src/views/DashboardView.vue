@@ -310,6 +310,7 @@ function getStatusLabel(status: string): string {
   padding: var(--space-8) var(--space-6);
   max-width: 1400px;
   margin: 0 auto;
+  padding-bottom: calc(var(--space-8) + max(0px, var(--safe-area-inset-bottom)));
 }
 
 /* ========================================
@@ -318,6 +319,7 @@ function getStatusLabel(status: string): string {
 
 .hero-section {
   padding: var(--space-12) 0;
+  padding-top: max(var(--space-12), calc(var(--space-12) + var(--safe-area-inset-top)));
   border-bottom: var(--border-thin);
   margin-bottom: var(--space-8);
 }
@@ -368,6 +370,7 @@ function getStatusLabel(status: string): string {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  word-break: break-word;
 }
 
 .hero-title-main {
@@ -612,12 +615,17 @@ function getStatusLabel(status: string): string {
   padding: var(--space-6);
   transition: all var(--transition-base);
   cursor: pointer;
+  min-height: var(--touch-target-min);
 }
 
 .task-card:hover {
   border-color: var(--accent-secondary);
   box-shadow: var(--shadow-md);
   transform: translateX(4px);
+}
+
+.task-card:active {
+  transform: scale(0.98);
 }
 
 .task-card.feature {
@@ -903,15 +911,19 @@ function getStatusLabel(status: string): string {
   .hero-title {
     font-size: var(--text-4xl);
   }
-}
 
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 @media (max-width: 640px) {
   .dashboard {
     padding: var(--space-6) var(--space-4);
+    padding-bottom: calc(var(--space-6) + max(0px, var(--safe-area-inset-bottom)));
   }
 
   .hero-section {
-    padding: var(--space-8) 0;
+    padding: var(--space-6) 0;
+    padding-top: max(var(--space-6), calc(var(--space-6) + var(--safe-area-inset-top)));
   }
 
   .hero-title {
@@ -924,10 +936,68 @@ function getStatusLabel(status: string): string {
 
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .stat-card {
+    padding: var(--space-5);
+  }
+
+  .stat-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .stat-value {
+    font-size: var(--text-2xl);
   }
 
   .task-card.feature {
     border-left-width: 2px;
   }
+
+  .task-card {
+    padding: var(--space-4);
+  }
+
+  .task-title {
+    font-size: var(--text-base);
+  }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .stat-card,
+  .task-card,
+  .task-item {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .stat-card:active,
+  .task-card:active {
+    transform: scale(0.97);
+    background: var(--bg-tertiary);
+  }
+
+  .task-item:active {
+    transform: scale(0.98);
+    background: var(--bg-tertiary);
+  }
+
+  /* Larger touch targets on mobile */
+  .task-card {
+    padding: var(--space-5);
+  }
+
+  .stat-card {
+    padding: var(--space-5);
+    gap: var(--space-4);
+  }
+}
 }
 </style>

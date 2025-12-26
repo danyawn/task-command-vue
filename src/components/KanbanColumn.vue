@@ -126,6 +126,7 @@ const onTaskDragEnd = () => {
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: all var(--transition-base);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .kanban-column.is-drag-over {
@@ -221,6 +222,7 @@ const onTaskDragEnd = () => {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  -webkit-overflow-scrolling: touch;
 }
 
 .column-tasks::-webkit-scrollbar {
@@ -289,6 +291,7 @@ const onTaskDragEnd = () => {
 @media (max-width: 640px) {
   .kanban-column {
     min-height: 300px;
+    border-radius: var(--radius-sm);
   }
 
   .column-header {
@@ -301,6 +304,44 @@ const onTaskDragEnd = () => {
 
   .column-description {
     font-size: var(--text-xs);
+  }
+
+  .empty-zone {
+    padding: var(--space-8) var(--space-4);
+    min-height: 150px;
+  }
+
+  .empty-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .empty-text {
+    font-size: var(--text-sm);
+  }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .kanban-column {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .kanban-column.is-drag-over {
+    border-width: 2px;
+  }
+
+  .badge-count {
+    min-height: 32px;
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .column-tasks {
+    /* Enable momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
   }
 }
 </style>

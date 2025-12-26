@@ -208,6 +208,7 @@ function getSortLabel(field: string): string {
   padding: var(--space-8) var(--space-6);
   max-width: 1200px;
   margin: 0 auto;
+  padding-bottom: calc(var(--space-8) + max(0px, var(--safe-area-inset-bottom)));
 }
 
 /* ========================================
@@ -233,6 +234,7 @@ function getSortLabel(field: string): string {
   font-family: var(--font-display);
   font-size: var(--text-5xl);
   font-weight: var(--font-bold);
+  word-break: break-word;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tighter);
   color: var(--text-primary);
@@ -283,6 +285,8 @@ function getSortLabel(field: string): string {
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-primary {
@@ -327,7 +331,7 @@ function getSortLabel(field: string): string {
 
 .search-section {
   flex: 1;
-  min-width: 280px;
+  min-width: 200px;
   position: relative;
   display: flex;
   align-items: center;
@@ -352,6 +356,8 @@ function getSortLabel(field: string): string {
   font-size: var(--text-sm);
   color: var(--text-primary);
   transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .search-input:focus {
@@ -401,6 +407,8 @@ function getSortLabel(field: string): string {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sort-btn:hover {
@@ -509,12 +517,44 @@ function getSortLabel(field: string): string {
 }
 
 @media (max-width: 640px) {
+  .list-view {
+    padding: var(--space-6) var(--space-4);
+    padding-bottom: calc(var(--space-6) + max(0px, var(--safe-area-inset-bottom)));
+  }
+
   .header-title {
     font-size: var(--text-3xl);
   }
 
   .header-actions {
     flex-direction: column;
+  }
+
+  .sort-btn {
+    min-width: 100%;
+  }
+
+  .task-list {
+    gap: var(--space-4);
+  }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary:active,
+  .btn-secondary:active,
+  .sort-btn:active {
+    transform: scale(0.96);
+  }
+
+  .btn-primary:active {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+  }
+
+  .sort-btn:active {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
   }
 }
 </style>

@@ -150,6 +150,7 @@ function getZoneCount(zone: string): number {
   display: flex;
   flex-direction: column;
   padding: var(--space-8) var(--space-6);
+  padding-bottom: calc(var(--space-8) + max(0px, var(--safe-area-inset-bottom)));
   background: var(--bg-primary);
 }
 
@@ -235,13 +236,22 @@ function getZoneCount(zone: string): number {
    ======================================== */
 
 .kanban-board {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
   gap: var(--space-6);
   flex: 1;
   overflow-x: auto;
   padding-bottom: var(--space-4);
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
   align-content: start;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.kanban-board > * {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
 }
 
 /* ========================================
@@ -277,6 +287,7 @@ function getZoneCount(zone: string): number {
 @media (max-width: 640px) {
   .kanban {
     padding: var(--space-4) var(--space-3);
+    padding-bottom: calc(var(--space-4) + max(0px, var(--safe-area-inset-bottom)));
   }
 
   .header-title {
@@ -284,8 +295,44 @@ function getZoneCount(zone: string): number {
   }
 
   .kanban-board {
-    grid-template-columns: 1fr;
-    overflow-x: hidden;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-4);
+    padding: 0 var(--space-2) var(--space-4);
+    margin: 0 calc(-1 * var(--space-3));
+  }
+
+  .kanban-board > * {
+    flex: 0 0 85vw;
+    scroll-snap-align: center;
+  }
+
+  /* Hide scrollbar on mobile for cleaner look */
+  .kanban-board {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .kanban-board::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Touch-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .kanban-board {
+    /* Enable momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .btn-create {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-create:active {
+    transform: scale(0.95);
+    background: var(--accent-primary);
   }
 }
 </style>
