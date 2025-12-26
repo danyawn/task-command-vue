@@ -49,19 +49,19 @@ const timelineTasks = computed(() => {
 
 const groupedTasks = computed(() => {
   const groups: Record<string, Task[]> = {}
-
+  
   timelineTasks.value.forEach(task => {
-    if (!task.dueDate) return
-
+    if (!task.dueDate) return 
+    
     const date = new Date(task.dueDate)
     const key = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-
+    
     if (!groups[key]) {
       groups[key] = []
     }
     groups[key].push(task)
   })
-
+  
   return groups
 })
 
@@ -77,7 +77,7 @@ function createSampleTasks() {
   nextWeek.setDate(nextWeek.getDate() + 7)
   const nextMonth = new Date(today)
   nextMonth.setMonth(nextMonth.getMonth() + 1)
-
+  
   const sampleTasks: Partial<Task>[] = [
     {
       title: 'Phase 1 kickoff',
@@ -101,7 +101,7 @@ function createSampleTasks() {
       dueDate: nextMonth.toISOString()
     }
   ]
-
+  
   sampleTasks.forEach(task => tasksStore.createTask(task))
 }
 
@@ -113,47 +113,69 @@ function selectTask(task: Task) {
 function setTimeRange(range: 'week' | 'month' | 'quarter') {
   selectedTimeRange.value = range
 }
+
+function getPriorityColor(priority: string): string {
+  const colors: Record<string, string> = {
+    critical: 'var(--status-critical)',
+    high: 'var(--status-high)',
+    medium: 'var(--status-medium)',
+    low: 'var(--status-low)'
+  }
+  return colors[priority] || 'var(--text-tertiary)'
+}
 </script>
 
 <template>
   <div class="timeline-view">
+    <!-- Editorial Header -->
     <header class="timeline-header">
-      <h1 class="timeline-title">Mission Timeline</h1>
-      <div class="time-range-selector">
-        <button
-          v-for="range in ['week', 'month', 'quarter'] as const"
-          :key="range"
-          class="range-btn"
-          :class="{ active: selectedTimeRange === range }"
-          @click="setTimeRange(range)"
-        >
-          {{ range }}
-        </button>
+      <div class="header-content">
+        <div class="header-main">
+          <h1 class="header-title">Mission Timeline</h1>
+          <p class="header-subtitle">Track upcoming milestones</p>
+        </div>
+        <div class="time-range-selector">
+          <button
+            v-for="range in ['week', 'month', 'quarter'] as const"
+            :key="range"
+            class="range-btn"
+            :class="{ active: selectedTimeRange === range }"
+            @click="setTimeRange(range)"
+          >
+            {{ range }}
+          </button>
+        </div>
       </div>
+      <div class="header-divider"></div>
     </header>
 
+    <!-- Timeline Content -->
     <div class="timeline-content">
       <div
         v-for="(tasks, month) in groupedTasks"
         :key="month"
-        class="timeline-month"
+        class="timeline-section"
       >
-        <h2 class="month-title">{{ month }}</h2>
+        <div class="section-header">
+          <h2 class="section-title">{{ month }}</h2>
+          <span class="section-count">{{ tasks.length }} {{ tasks.length === 1 ? 'mission' : 'missions' }}</span>
+        </div>
+        <div class="section-divider"></div>
+        
         <div class="timeline-tasks">
-          <div
+          <article
             v-for="task in tasks"
             :key="task.id"
             class="timeline-task"
-            :class="task.priority"
             @click="selectTask(task)"
           >
             <div class="task-date">
-              <div class="date-day">{{ new Date(task.dueDate!).getDate() }}</div>
-              <div class="date-month">{{ new Date(task.dueDate!).toLocaleDateString('en-US', { month: 'short' }) }}</div>
+              <span class="date-day">{{ new Date(task.dueDate!).getDate() }}</span>
+              <span class="date-month">{{ new Date(task.dueDate!).toLocaleDateString('en-US', { month: 'short' }) }}</span>
             </div>
-            <div class="task-line"></div>
-            <div class="task-card">
-              <div class="task-priority" :class="task.priority"></div>
+            <div class="task-connector"></div>
+            <div class="task-content">
+              <div class="task-priority-indicator" :style="{ backgroundColor: getPriorityColor(task.priority) }"></div>
               <div class="task-info">
                 <h3 class="task-title">{{ task.title }}</h3>
                 <div class="task-meta">
@@ -162,119 +184,191 @@ function setTimeRange(range: 'week' | 'month' | 'quarter') {
                 </div>
               </div>
             </div>
-          </div>
+          </article>
         </div>
       </div>
 
+      <!-- Empty State -->
       <div v-if="Object.keys(groupedTasks).length === 0" class="empty-timeline">
-        <div class="empty-icon">📅</div>
-        <p>No upcoming missions</p>
+        <div class="empty-content">
+          <h3 class="empty-title">No Upcoming Missions</h3>
+          <p class="empty-description">Your timeline is clear for the selected period.</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* ========================================
+   EDITORIAL TIMELINE VIEW
+   ======================================== */
+
 .timeline-view {
-  padding: 2rem;
-  max-width: 1000px;
+  padding: var(--space-8) var(--space-6);
+  max-width: 1200px;
   margin: 0 auto;
 }
 
+/* ========================================
+   EDITORIAL HEADER
+   ======================================== */
+
 .timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  flex-wrap: wrap;
-  gap: 1rem;
+  margin-bottom: var(--space-8);
 }
 
-.timeline-title {
-  font-family: 'Courier New', monospace;
-  font-size: 2rem;
-  font-weight: 700;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.header-main {
+  flex: 1;
+  min-width: 280px;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+}
+
+.header-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-regular);
+  line-height: var(--leading-normal);
+  color: var(--text-tertiary);
   margin: 0;
-  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-style: italic;
 }
 
 .time-range-selector {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 .range-btn {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 600;
+  padding: var(--space-3) var(--space-5);
+  background: var(--bg-elevated);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #888;
+  color: var(--text-tertiary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .range-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-color: var(--border-secondary);
 }
 
 .range-btn.active {
-  background: rgba(0, 255, 136, 0.1);
-  border-color: #00ff88;
-  color: #00ff88;
+  background: var(--bg-primary);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  font-weight: var(--font-bold);
 }
+
+.header-divider {
+  width: 100%;
+  height: 2px;
+  background: var(--text-primary);
+  margin-top: var(--space-6);
+}
+
+/* ========================================
+   TIMELINE CONTENT
+   ======================================== */
 
 .timeline-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-8);
 }
 
-.timeline-month {
-  background: rgba(20, 20, 20, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 1.5rem;
-  backdrop-filter: blur(10px);
+/* ========================================
+   TIMELINE SECTION
+   ======================================== */
+
+.timeline-section {
+  background: var(--bg-elevated);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
-.month-title {
-  font-family: 'Courier New', monospace;
-  font-size: 1.25rem;
-  font-weight: 700;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-6);
+  background: var(--bg-tertiary);
+  border-bottom: var(--border-thin);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0 0 1.5rem 0;
-  color: #fff;
-  border-bottom: 2px solid #00ff88;
-  padding-bottom: 0.5rem;
 }
+
+.section-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-primary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+}
+
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-primary);
+}
+
+/* ========================================
+   TIMELINE TASKS
+   ======================================== */
 
 .timeline-tasks {
+  padding: var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  position: relative;
+  gap: var(--space-6);
 }
 
 .timeline-task {
   display: flex;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: var(--space-5);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .timeline-task:hover {
@@ -285,90 +379,76 @@ function setTimeRange(range: 'week' | 'month' | 'quarter') {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 60px;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: var(--bg-tertiary);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
   flex-shrink: 0;
 }
 
 .date-day {
-  font-family: 'Courier New', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #00ff88;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--accent-primary);
   line-height: 1;
 }
 
 .date-month {
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #888;
-  margin-top: 0.25rem;
+  color: var(--text-tertiary);
 }
 
-.task-line {
+.task-connector {
   flex: 1;
-  min-width: 20px;
+  min-width: 32px;
   height: 2px;
-  background: linear-gradient(90deg, #00ff88 0%, rgba(0, 255, 136, 0.1) 100%);
-  margin-top: 1rem;
+  background: var(--border-secondary);
+  margin-top: 32px;
   position: relative;
 }
 
-.task-line::after {
+.task-connector::after {
   content: '';
   position: absolute;
   right: -4px;
   top: 50%;
   transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  background: #00ff88;
+  width: 10px;
+  height: 10px;
+  background: var(--accent-primary);
   border-radius: 50%;
-  box-shadow: 0 0 10px #00ff88;
 }
 
-.task-card {
+.task-content {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--bg-secondary);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
 }
 
-.timeline-task:hover .task-card {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(0, 255, 136, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+.timeline-task:hover .task-content {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-secondary);
+  box-shadow: var(--shadow-md);
 }
 
-.task-priority {
+.task-priority-indicator {
   width: 4px;
   height: 40px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
-}
-
-.task-priority.critical {
-  background: #ff4757;
-  box-shadow: 0 0 10px #ff4757;
-}
-
-.task-priority.high {
-  background: #ffa502;
-}
-
-.task-priority.medium {
-  background: #00d2d3;
-}
-
-.task-priority.low {
-  background: #2ed573;
 }
 
 .task-info {
@@ -377,84 +457,118 @@ function setTimeRange(range: 'week' | 'month' | 'quarter') {
 }
 
 .task-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  margin: 0 0 0.5rem 0;
-  line-height: 1.4;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--leading-snug);
 }
 
 .task-meta {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: center;
 }
 
 .task-status,
 .task-est {
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.5rem;
-  border-radius: 2px;
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-primary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
 }
 
-.task-status {
-  color: #00d2d3;
-  background: rgba(0, 210, 211, 0.1);
-}
-
-.task-est {
-  color: #888;
-  background: rgba(136, 136, 136, 0.1);
-}
+/* ========================================
+   EMPTY STATE
+   ======================================== */
 
 .empty-timeline {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: var(--space-16) var(--space-8);
+}
+
+.empty-content {
   text-align: center;
+  max-width: 400px;
 }
 
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  opacity: 0.3;
+.empty-title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
 }
 
-.empty-timeline p {
-  font-family: 'Courier New', monospace;
-  font-size: 1rem;
-  color: #888;
+.empty-description {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--text-tertiary);
+  line-height: var(--leading-relaxed);
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-style: italic;
 }
 
-@media (max-width: 768px) {
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 900px) {
   .timeline-view {
-    padding: 1rem;
+    padding: var(--space-6) var(--space-4);
   }
 
-  .timeline-header {
+  .header-content {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .timeline-task {
-    flex-direction: column;
-    gap: 0.75rem;
+  .header-main {
+    width: 100%;
   }
 
-  .task-line {
+  .time-range-selector {
+    width: 100%;
+  }
+
+  .range-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-title {
+    font-size: var(--text-3xl);
+  }
+
+  .timeline-task {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .task-date {
+    width: 56px;
+    height: 56px;
+  }
+
+  .date-day {
+    font-size: var(--text-xl);
+  }
+
+  .task-connector {
     display: none;
   }
 
-  .task-card {
+  .task-content {
     width: 100%;
   }
 }

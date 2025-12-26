@@ -12,7 +12,7 @@ import {
   PlusIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  BoltIcon
+  NewspaperIcon
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
@@ -60,8 +60,8 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })
 
-function navigateTo(route: string) {
-  router.push(route)
+function navigateTo(routeName: string) {
+  router.push({ name: routeName })
 }
 
 function toggleSidebar() {
@@ -70,58 +70,86 @@ function toggleSidebar() {
 </script>
 
 <template>
-  <div class="app" :class="{ 'dark-mode': isDarkMode }">
-    <aside class="sidebar" :class="{ 'collapsed': !isSidebarExpanded }">
-      <div class="sidebar-header">
-        <div class="logo">
-          <BoltIcon class="logo-icon" />
-          <span v-if="isSidebarExpanded" class="logo-text">COMMAND</span>
+  <div class="app" :class="{ 'theme-dark': isDarkMode }">
+    <!-- Editorial Masthead -->
+    <header class="masthead">
+      <div class="masthead-content">
+        <div class="masthead-brand">
+          <NewspaperIcon class="masthead-icon" />
+          <div class="masthead-text">
+            <h1 class="masthead-title">Task Command</h1>
+            <p class="masthead-subtitle">Productivity Journal</p>
+          </div>
         </div>
-        <button
-          class="sidebar-toggle"
-          @click="toggleSidebar"
-          :aria-label="isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
-          :aria-expanded="isSidebarExpanded"
-        >
-          <ChevronLeftIcon v-if="isSidebarExpanded" />
-          <ChevronRightIcon v-else />
-        </button>
-      </div>
-
-      <nav class="sidebar-nav">
-        <a
-          v-for="route in navRoutes"
-          :key="route.name"
-          class="nav-item"
-          :class="{ active: currentRoute === route.name }"
-          @click="navigateTo(route.name as string)"
-        >
-          <component :is="route.icon" class="nav-icon" />
-          <span v-if="isSidebarExpanded" class="nav-label">{{ route.label }}</span>
-        </a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="status-indicator">
-          <span class="status-dot"></span>
-          <span v-if="isSidebarExpanded" class="status-text">ONLINE</span>
+        <div class="masthead-meta">
+          <span class="masthead-date">{{ new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+          <span class="masthead-divider">|</span>
+          <span class="masthead-edition">Vol. 1, Issue 1</span>
         </div>
       </div>
-    </aside>
+    </header>
 
-    <main class="main-content">
-      <div class="content-wrapper">
-        <router-view v-slot="{ Component }">
-          <transition name="page" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
-      </div>
-    </main>
+    <div class="app-layout">
+      <!-- Magazine-style Sidebar -->
+      <aside class="sidebar" :class="{ 'collapsed': !isSidebarExpanded }">
+        <div class="sidebar-header">
+          <button
+            class="sidebar-toggle"
+            @click="toggleSidebar"
+            :aria-label="isSidebarExpanded ? 'Collapse navigation' : 'Expand navigation'"
+            :aria-expanded="isSidebarExpanded"
+          >
+            <ChevronLeftIcon v-if="isSidebarExpanded" />
+            <ChevronRightIcon v-else />
+          </button>
+          <span v-if="isSidebarExpanded" class="sidebar-heading">Sections</span>
+        </div>
 
-    <!-- Command Palette Modal -->
+        <nav class="sidebar-nav">
+          <div class="section-marker">
+            <span>Navigation</span>
+          </div>
+          <a
+            v-for="route in navRoutes"
+            :key="route.name"
+            class="nav-item"
+            :class="{ active: currentRoute === route.name }"
+            @click="navigateTo(route.name as string)"
+          >
+            <component :is="route.icon" class="nav-icon" />
+            <div v-if="isSidebarExpanded" class="nav-content">
+              <span class="nav-label">{{ route.label }}</span>
+              <span class="nav-decoration"></span>
+            </div>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="editorial-note">
+            <p v-if="isSidebarExpanded" class="note-text">Stay focused. Stay productive.</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <div class="content-wrapper">
+          <router-view v-slot="{ Component }">
+            <transition name="page" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
+        </div>
+      </main>
+    </div>
+
+    <!-- Command Palette Modal - Magazine Style -->
     <div v-if="showCommandPalette" class="modal-overlay" @click="uiStore.setCommandPaletteVisible(false)">
       <div class="command-palette" @click.stop>
+        <div class="command-header">
+          <h2 class="command-title">Quick Actions</h2>
+          <span class="command-hint">Press ⌘K to open</span>
+        </div>
         <input
           type="text"
           placeholder="Search commands..."
@@ -132,16 +160,22 @@ function toggleSidebar() {
           <div class="command-item">
             <ChartBarIcon class="command-icon" />
             <span class="command-label">Go to Dashboard</span>
-            <span class="command-shortcut">⌘K</span>
+            <span class="command-shortcut">⌘D</span>
           </div>
           <div class="command-item">
             <ClipboardDocumentListIcon class="command-icon" />
-            <span class="command-label">Open Kanban Board</span>
+            <span class="command-label">Open Board View</span>
+            <span class="command-shortcut">⌘B</span>
           </div>
           <div class="command-item">
             <PlusIcon class="command-icon" />
             <span class="command-label">Create New Task</span>
             <span class="command-shortcut">⌘N</span>
+          </div>
+          <div class="command-item">
+            <DocumentTextIcon class="command-icon" />
+            <span class="command-label">View All Tasks</span>
+            <span class="command-shortcut">⌘L</span>
           </div>
         </div>
       </div>
@@ -149,150 +183,258 @@ function toggleSidebar() {
   </div>
 </template>
 
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:root {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: rgba(20, 20, 20, 0.8);
-  --bg-tertiary: rgba(255, 255, 255, 0.03);
-  --bg-hover: rgba(255, 255, 255, 0.08);
-  --border-color: rgba(255, 255, 255, 0.1);
-  --border-active: #00ff88;
-  --text-primary: #fff;
-  --text-secondary: #888;
-  --gradient-primary: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-  --gradient-critical: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
-  --shadow-glow: 0 0 20px rgba(0, 255, 136, 0.2);
-}
-
-body {
-  font-family: 'Courier New', monospace;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  overflow-x: hidden;
-}
-
-#app {
-  min-height: 100vh;
-}
+<style scoped>
+/* ========================================
+   EDITORIAL MAGAZINE LAYOUT
+   ======================================== */
 
 .app {
-  display: flex;
-  height: 100vh;
-  background: var(--bg-primary);
-}
-
-.sidebar {
-  width: 250px;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease;
-  backdrop-filter: blur(10px);
+  background: var(--bg-primary);
+  transition: background var(--transition-base);
+}
+
+/* ========================================
+   MASTHEAD - Magazine Cover Style
+   ======================================== */
+
+.masthead {
+  background: var(--bg-elevated);
+  border-bottom: 3px solid var(--text-primary);
+  padding: var(--space-6) var(--space-8);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+
+.masthead-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.masthead-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.masthead-icon {
+  width: 40px;
+  height: 40px;
+  color: var(--accent-primary);
+}
+
+.masthead-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.masthead-title {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  line-height: var(--leading-tight);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.masthead-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  color: var(--text-tertiary);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.masthead-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.masthead-divider {
+  color: var(--border-tertiary);
+}
+
+.masthead-edition {
+  font-weight: var(--font-medium);
+  color: var(--accent-secondary);
+}
+
+/* ========================================
+   APP LAYOUT
+   ======================================== */
+
+.app-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ========================================
+   SIDEBAR - Magazine Navigation
+   ======================================== */
+
+.sidebar {
+  width: 280px;
+  background: var(--bg-secondary);
+  border-right: var(--border-thin);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition-base);
   position: relative;
-  z-index: 100;
+  z-index: 40;
 }
 
 .sidebar.collapsed {
-  width: 70px;
+  width: 80px;
+}
+
+.sidebar.collapsed .sidebar-heading,
+.sidebar.collapsed .section-marker span,
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .nav-decoration,
+.sidebar.collapsed .note-text {
+  display: none;
+}
+
+.sidebar.collapsed .section-marker {
+  justify-content: center;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding-left: var(--space-5);
+}
+
+.sidebar.collapsed .nav-item:hover {
+  padding-left: var(--space-5);
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  overflow: hidden;
-}
-
-.logo-icon {
-  width: 24px;
-  height: 24px;
-  color: #00ff88;
-}
-
-.logo-text {
-  font-size: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  white-space: nowrap;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5);
+  border-bottom: var(--border-thin);
+  background: var(--bg-tertiary);
 }
 
 .sidebar-toggle {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  background: transparent;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.sidebar-toggle svg {
-  width: 16px;
-  height: 16px;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .sidebar-toggle:hover {
-  background: var(--bg-hover);
+  background: var(--bg-elevated);
   color: var(--text-primary);
-  border-color: var(--border-active);
+  border-color: var(--accent-primary);
+}
+
+.sidebar-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-heading {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  white-space: nowrap;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 1rem;
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+.section-marker {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 var(--space-6) 0;
+  padding-bottom: var(--space-2);
+  border-bottom: var(--border-thin);
+}
+
+.section-marker::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-primary);
+}
+
+.section-marker span {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.section-marker::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-primary);
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-radius: 4px;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
+  margin-bottom: var(--space-1);
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);
-  transform: translateX(4px);
+  border-left-color: var(--accent-secondary);
+  padding-left: var(--space-6);
 }
 
 .nav-item.active {
-  background: rgba(0, 255, 136, 0.1);
-  border: 1px solid var(--border-active);
-  color: #00ff88;
+  background: var(--bg-tertiary);
+  color: var(--accent-primary);
+  border-left-color: var(--accent-primary);
+  font-weight: var(--font-medium);
 }
 
 .nav-icon {
@@ -301,49 +443,58 @@ body {
   flex-shrink: 0;
 }
 
+.nav-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
 .nav-label {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.nav-decoration {
+  flex: 1;
+  height: 1px;
+  background: var(--border-secondary);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.nav-item:hover .nav-decoration,
+.nav-item.active .nav-decoration {
+  opacity: 1;
 }
 
 .sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid var(--border-color);
+  padding: var(--space-6) var(--space-5);
+  border-top: var(--border-thin);
+  background: var(--bg-tertiary);
 }
 
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.editorial-note {
+  text-align: center;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #00ff88;
-  box-shadow: 0 0 10px #00ff88;
-  animation: pulse 2s ease-in-out infinite;
+.note-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.status-text {
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #00ff88;
-}
+/* ========================================
+   MAIN CONTENT
+   ======================================== */
 
 .main-content {
   flex: 1;
@@ -353,65 +504,69 @@ body {
 
 .content-wrapper {
   min-height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* Page transitions */
+/* ========================================
+   PAGE TRANSITIONS
+   ======================================== */
+
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
 }
 
 .page-enter-from {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(10px);
 }
 
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-20px);
+  transform: translateY(-10px);
 }
 
-/* Command Palette Modal */
+/* ========================================
+   COMMAND PALETTE - Magazine Style
+   ======================================== */
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 20vh;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
+  padding-top: 15vh;
+  z-index: 100;
+  animation: fadeIn var(--transition-base);
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .command-palette {
   width: 100%;
   max-width: 600px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  background: var(--bg-elevated);
+  border: var(--border-medium);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  animation: slideDown 0.2s ease;
+  box-shadow: var(--shadow-xl);
+  animation: slideDown var(--transition-base);
 }
 
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
@@ -419,20 +574,48 @@ body {
   }
 }
 
-.command-input {
-  width: 100%;
-  padding: 1rem 1.5rem;
+.command-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
   background: var(--bg-tertiary);
-  border: none;
-  border-bottom: 1px solid var(--border-color);
-  font-family: 'Courier New', monospace;
-  font-size: 1rem;
-  color: var(--text-primary);
+  border-bottom: var(--border-thin);
 }
 
-.command-input:focus {
+.command-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--tracking-tight);
+}
+
+.command-hint {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-primary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+}
+
+.command-input {
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+  background: var(--bg-primary);
+  border: none;
+  border-bottom: var(--border-thin);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--text-primary);
   outline: none;
-  border-bottom-color: var(--border-active);
+}
+
+.command-input::placeholder {
+  color: var(--text-tertiary);
 }
 
 .command-list {
@@ -443,80 +626,143 @@ body {
 .command-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
+  border-bottom: var(--border-thin);
+}
+
+.command-item:last-child {
+  border-bottom: none;
 }
 
 .command-item:hover {
-  background: var(--bg-hover);
+  background: var(--bg-tertiary);
 }
 
 .command-icon {
   width: 20px;
   height: 20px;
+  color: var(--text-secondary);
 }
 
 .command-label {
   flex: 1;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
 }
 
 .command-shortcut {
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.5rem;
+  padding: var(--space-1) var(--space-3);
   background: var(--bg-tertiary);
-  border-radius: 2px;
-  color: var(--text-secondary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
 }
 
-/* Scrollbar styles */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ========================================
+   SCROLLBAR - Editorial Style
+   ======================================== */
+
+.sidebar-nav::-webkit-scrollbar,
+.command-list::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+  width: 6px;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+.sidebar-nav::-webkit-scrollbar-track,
+.command-list::-webkit-scrollbar-track,
+.main-content::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
+.sidebar-nav::-webkit-scrollbar-thumb,
+.command-list::-webkit-scrollbar-thumb,
+.main-content::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: var(--radius-full);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+.sidebar-nav::-webkit-scrollbar-thumb:hover,
+.command-list::-webkit-scrollbar-thumb:hover,
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: var(--border-tertiary);
 }
 
-/* Responsive */
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
 @media (max-width: 1024px) {
+  .masthead-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .masthead-meta {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .sidebar {
-    width: 70px;
+    width: 80px;
   }
 
   .sidebar.collapsed {
-    width: 70px;
+    width: 80px;
   }
 
-  .logo-text,
+  .sidebar-heading,
   .nav-label,
-  .status-text {
+  .nav-decoration,
+  .note-text {
+    display: none;
+  }
+
+  .section-marker {
+    justify-content: center;
+  }
+
+  .section-marker::before,
+  .section-marker::after {
+    display: none;
+  }
+
+  .section-marker span {
     display: none;
   }
 }
 
 @media (max-width: 768px) {
+  .masthead {
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .masthead-title {
+    font-size: var(--text-2xl);
+  }
+
+  .masthead-icon {
+    width: 32px;
+    height: 32px;
+  }
+
   .sidebar {
     position: fixed;
-    left: -70px;
-    width: 70px;
+    left: -80px;
+    width: 80px;
+    height: calc(100vh - 80px);
+    top: 80px;
+    z-index: 60;
   }
 
   .sidebar.mobile-open {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { HomeIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 
@@ -11,94 +12,181 @@ function goHome() {
 <template>
   <div class="not-found">
     <div class="not-found-content">
+      <!-- Error Code -->
       <div class="error-code">404</div>
+      
+      <!-- Error Title -->
       <h1 class="error-title">Mission Not Found</h1>
+      
+      <!-- Divider -->
+      <div class="error-divider"></div>
+      
+      <!-- Error Message -->
       <p class="error-message">
         The target coordinates are invalid or have been decommissioned.
       </p>
+      
+      <!-- Action Button -->
       <button class="btn-primary" @click="goHome">
-        Return to Base
+        <HomeIcon class="btn-icon" />
+        <span>Return to Base</span>
       </button>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* ========================================
+   EDITORIAL NOT FOUND PAGE
+   ======================================== */
+
 .not-found {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  background: #0a0a0a;
+  padding: var(--space-8) var(--space-6);
+  background: var(--bg-primary);
 }
 
 .not-found-content {
   text-align: center;
-  max-width: 500px;
+  max-width: 600px;
+  padding: var(--space-12);
+  background: var(--bg-elevated);
+  border: var(--border-thin);
+  border-top: 4px solid var(--accent-primary);
+  border-radius: var(--radius-lg);
 }
 
+/* ========================================
+   ERROR CODE
+   ======================================== */
+
 .error-code {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-display);
   font-size: 8rem;
-  font-weight: 700;
+  font-weight: var(--font-extrabold);
   line-height: 1;
-  background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
+  letter-spacing: var(--tracking-tighter);
+  background: linear-gradient(135deg, var(--status-critical) 0%, var(--accent-primary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-6);
 }
+
+/* ========================================
+   ERROR TITLE
+   ======================================== */
 
 .error-title {
-  font-family: 'Courier New', monospace;
-  font-size: 2rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0 0 1rem 0;
-  color: #fff;
 }
+
+/* ========================================
+   ERROR DIVIDER
+   ======================================== */
+
+.error-divider {
+  width: 60px;
+  height: 2px;
+  background: var(--accent-primary);
+  margin: var(--space-8) auto;
+}
+
+/* ========================================
+   ERROR MESSAGE
+   ======================================== */
 
 .error-message {
-  font-family: 'Courier New', monospace;
-  font-size: 1rem;
-  color: #888;
-  line-height: 1.6;
-  margin-bottom: 2rem;
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: var(--font-regular);
+  line-height: var(--leading-relaxed);
+  color: var(--text-tertiary);
+  margin: 0 0 var(--space-10) 0;
+  font-style: italic;
 }
 
+/* ========================================
+   ACTION BUTTON
+   ======================================== */
+
 .btn-primary {
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-8);
+  background: var(--text-primary);
+  color: var(--bg-primary);
   border: none;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-  font-weight: 700;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #0a0a0a;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .btn-primary:hover {
+  background: var(--accent-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
+.btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
 @media (max-width: 768px) {
+  .not-found {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .not-found-content {
+    padding: var(--space-8);
+  }
+
   .error-code {
     font-size: 5rem;
   }
 
   .error-title {
-    font-size: 1.5rem;
+    font-size: var(--text-3xl);
   }
 
   .error-message {
-    font-size: 0.875rem;
+    font-size: var(--text-base);
+  }
+
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-code {
+    font-size: 4rem;
+  }
+
+  .error-title {
+    font-size: var(--text-2xl);
   }
 }
 </style>

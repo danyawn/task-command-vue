@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import { clearLocalStoragePattern } from '@/composables/useLocalStorage'
+import { ArrowDownTrayIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 const uiStore = useUIStore()
 
@@ -50,317 +51,559 @@ function exportData() {
 
 <template>
   <div class="settings-view">
+    <!-- Editorial Header -->
     <header class="settings-header">
-      <h1 class="settings-title">System Configuration</h1>
+      <div class="header-content">
+        <div class="header-main">
+          <h1 class="header-title">System Configuration</h1>
+          <p class="header-subtitle">Customize your experience</p>
+        </div>
+      </div>
+      <div class="header-divider"></div>
     </header>
 
-    <section class="settings-section">
-      <h2 class="section-title">Appearance</h2>
-      
-      <div class="setting-group">
-        <label class="setting-label">
-          <span class="label-text">Theme</span>
-          <div class="theme-selector">
-            <button
-              v-for="theme in ['dark', 'light', 'auto'] as const"
-              :key="theme"
-              class="theme-btn"
-              :class="{ active: uiState.theme === theme }"
-              @click="setTheme(theme)"
-            >
-              {{ theme }}
-            </button>
+    <!-- Settings Sections -->
+    <div class="settings-content">
+      <!-- Appearance Section -->
+      <section class="settings-section">
+        <div class="section-header">
+          <h2 class="section-title">Appearance</h2>
+          <div class="section-underline"></div>
+        </div>
+        
+        <div class="settings-grid">
+          <!-- Theme Setting -->
+          <div class="setting-card">
+            <div class="setting-label">
+              <span class="label-text">Theme</span>
+              <p class="label-description">Choose your preferred color scheme</p>
+            </div>
+            <div class="setting-control">
+              <div class="theme-selector">
+                <button
+                  v-for="theme in ['dark', 'light', 'auto'] as const"
+                  :key="theme"
+                  class="theme-btn"
+                  :class="{ active: uiState.theme === theme }"
+                  @click="setTheme(theme)"
+                >
+                  <span class="theme-icon">{{ theme === 'dark' ? '◐' : theme === 'light' ? '☀' : '◐' }}</span>
+                  <span class="theme-name">{{ theme }}</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </label>
-      </div>
 
-      <div class="setting-group">
-        <label class="setting-label">
-          <span class="label-text">Density</span>
-          <div class="density-selector">
-            <button
-              v-for="density in ['compact', 'comfortable', 'spacious'] as const"
-              :key="density"
-              class="density-btn"
-              :class="{ active: uiState.density === density }"
-              @click="setDensity(density)"
-            >
-              {{ density }}
-            </button>
+          <!-- Density Setting -->
+          <div class="setting-card">
+            <div class="setting-label">
+              <span class="label-text">Density</span>
+              <p class="label-description">Adjust spacing and layout density</p>
+            </div>
+            <div class="setting-control">
+              <div class="density-selector">
+                <button
+                  v-for="density in ['compact', 'comfortable', 'spacious'] as const"
+                  :key="density"
+                  class="density-btn"
+                  :class="{ active: uiState.density === density }"
+                  @click="setDensity(density)"
+                >
+                  <span class="density-name">{{ density }}</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </label>
-      </div>
-    </section>
+        </div>
+      </section>
 
-    <section class="settings-section">
-      <h2 class="section-title">Data Management</h2>
-      
-      <div class="setting-group">
-        <div class="info-card">
-          <div class="info-label">Storage Used</div>
-          <div class="info-value">{{ localStorageSize }} KB</div>
+      <!-- Data Management Section -->
+      <section class="settings-section">
+        <div class="section-header">
+          <h2 class="section-title">Data Management</h2>
+          <div class="section-underline"></div>
         </div>
-      </div>
+        
+        <div class="settings-grid">
+          <!-- Storage Info -->
+          <div class="setting-card">
+            <div class="setting-label">
+              <span class="label-text">Storage Used</span>
+              <p class="label-description">Local browser storage usage</p>
+            </div>
+            <div class="setting-control">
+              <div class="storage-info">
+                <span class="storage-value">{{ localStorageSize }}</span>
+                <span class="storage-unit">KB</span>
+              </div>
+            </div>
+          </div>
 
-      <div class="setting-group">
-        <label class="setting-label">
-          <span class="label-text">Export Data</span>
-          <button class="action-btn export" @click="exportData">
-            Download Backup
-          </button>
-        </label>
-      </div>
+          <!-- Export Data -->
+          <div class="setting-card">
+            <div class="setting-label">
+              <span class="label-text">Export Data</span>
+              <p class="label-description">Download all your data as JSON</p>
+            </div>
+            <div class="setting-control">
+              <button class="action-btn export" @click="exportData">
+                <ArrowDownTrayIcon class="btn-icon" />
+                <span>Download Backup</span>
+              </button>
+            </div>
+          </div>
 
-      <div class="setting-group danger">
-        <label class="setting-label">
-          <span class="label-text">Danger Zone</span>
-          <button class="action-btn danger" @click="clearAllData">
-            Clear All Data
-          </button>
-        </label>
-      </div>
-    </section>
+          <!-- Clear Data -->
+          <div class="setting-card danger">
+            <div class="setting-label">
+              <span class="label-text">Danger Zone</span>
+              <p class="label-description">Permanently delete all data</p>
+            </div>
+            <div class="setting-control">
+              <button class="action-btn danger" @click="clearAllData">
+                <TrashIcon class="btn-icon" />
+                <span>Clear All Data</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <section class="settings-section">
-      <h2 class="section-title">About</h2>
-      
-      <div class="about-info">
-        <div class="info-row">
-          <span class="info-key">Version</span>
-          <span class="info-value">1.0.0</span>
+      <!-- About Section -->
+      <section class="settings-section">
+        <div class="section-header">
+          <h2 class="section-title">About</h2>
+          <div class="section-underline"></div>
         </div>
-        <div class="info-row">
-          <span class="info-key">Framework</span>
-          <span class="info-value">Vue 3 + Vite</span>
+        
+        <div class="about-grid">
+          <div class="about-item">
+            <span class="about-label">Version</span>
+            <span class="about-value">1.0.0</span>
+          </div>
+          <div class="about-item">
+            <span class="about-label">Framework</span>
+            <span class="about-value">Vue 3 + Vite</span>
+          </div>
+          <div class="about-item">
+            <span class="about-label">State Management</span>
+            <span class="about-value">Pinia</span>
+          </div>
+          <div class="about-item">
+            <span class="about-label">Storage</span>
+            <span class="about-value">localStorage</span>
+          </div>
         </div>
-        <div class="info-row">
-          <span class="info-key">State Management</span>
-          <span class="info-value">Pinia</span>
-        </div>
-        <div class="info-row">
-          <span class="info-key">Storage</span>
-          <span class="info-value">localStorage</span>
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
 
 <style scoped>
+/* ========================================
+   EDITORIAL SETTINGS VIEW
+   ======================================== */
+
 .settings-view {
-  padding: 2rem;
-  max-width: 800px;
+  padding: var(--space-8) var(--space-6);
+  max-width: 1200px;
   margin: 0 auto;
 }
 
+/* ========================================
+   EDITORIAL HEADER
+   ======================================== */
+
 .settings-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--space-10);
 }
 
-.settings-title {
-  font-family: 'Courier New', monospace;
-  font-size: 2rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0;
-  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.header-content {
+  max-width: 600px;
 }
+
+.header-main {
+  margin-bottom: var(--space-4);
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.header-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: var(--font-regular);
+  line-height: var(--leading-normal);
+  color: var(--text-tertiary);
+  margin: 0;
+  font-style: italic;
+}
+
+.header-divider {
+  width: 100px;
+  height: 3px;
+  background: var(--accent-primary);
+  margin-top: var(--space-6);
+}
+
+/* ========================================
+   SETTINGS CONTENT
+   ======================================== */
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+/* ========================================
+   SETTINGS SECTION
+   ======================================== */
 
 .settings-section {
-  background: rgba(20, 20, 20, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  backdrop-filter: blur(10px);
+  background: var(--bg-elevated);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.section-header {
+  padding: var(--space-6) var(--space-8);
+  background: var(--bg-tertiary);
+  border-bottom: var(--border-thin);
 }
 
 .section-title {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  margin: 0 0 1.5rem 0;
-  color: #888;
-  border-bottom: 2px solid #00ff88;
-  padding-bottom: 0.5rem;
-  display: inline-block;
 }
 
-.setting-group {
-  margin-bottom: 1.5rem;
+.section-underline {
+  width: 40px;
+  height: 2px;
+  background: var(--accent-primary);
 }
 
-.setting-group.danger {
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 71, 87, 0.2);
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--border-thin);
+  background: var(--border-primary);
+}
+
+/* ========================================
+   SETTING CARD
+   ======================================== */
+
+.setting-card {
+  background: var(--bg-elevated);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.setting-card.danger {
+  background: rgba(196, 30, 58, 0.03);
+  border-left: 3px solid var(--status-critical);
 }
 
 .setting-label {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-1);
 }
 
 .label-text {
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
 }
 
-.theme-selector,
-.density-selector {
+.label-description {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  color: var(--text-tertiary);
+  margin: 0;
+  font-style: italic;
+}
+
+.setting-control {
   display: flex;
-  gap: 0.5rem;
-}
-
-.theme-btn,
-.density-btn {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #888;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.theme-btn:hover,
-.density-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-.theme-btn.active,
-.density-btn.active {
-  background: rgba(0, 255, 136, 0.1);
-  border-color: #00ff88;
-  color: #00ff88;
-}
-
-.info-card {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  justify-content: flex-end;
+  min-height: 48px;
 }
 
-.info-label {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #888;
+/* ========================================
+   THEME SELECTOR
+   ======================================== */
+
+.theme-selector {
+  display: flex;
+  gap: var(--space-2);
 }
 
-.info-value {
-  font-family: 'Courier New', monospace;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #00ff88;
-}
-
-.action-btn {
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #fff;
+.theme-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-tertiary);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
+  min-width: 80px;
 }
 
-.action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+.theme-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
   transform: translateY(-2px);
 }
 
+.theme-btn.active {
+  background: var(--bg-primary);
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-icon {
+  font-size: var(--text-2xl);
+  line-height: 1;
+}
+
+.theme-name {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.theme-btn.active .theme-name {
+  color: var(--accent-primary);
+}
+
+/* ========================================
+   DENSITY SELECTOR
+   ======================================== */
+
+.density-selector {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.density-btn {
+  padding: var(--space-3) var(--space-5);
+  background: var(--bg-tertiary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.density-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
+  color: var(--text-secondary);
+}
+
+.density-btn.active {
+  background: var(--bg-primary);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  font-weight: var(--font-bold);
+}
+
+/* ========================================
+   STORAGE INFO
+   ======================================== */
+
+.storage-info {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.storage-value {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--accent-primary);
+  line-height: 1;
+}
+
+.storage-unit {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* ========================================
+   ACTION BUTTONS
+   ======================================== */
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-tertiary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.action-btn:hover {
+  background: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
 .action-btn.export {
-  background: rgba(0, 255, 136, 0.1);
-  border-color: #00ff88;
-  color: #00ff88;
+  background: var(--bg-primary);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .action-btn.export:hover {
-  background: rgba(0, 255, 136, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+  background: var(--accent-primary);
+  color: var(--bg-primary);
 }
 
 .action-btn.danger {
-  background: rgba(255, 71, 87, 0.1);
-  border-color: #ff4757;
-  color: #ff4757;
+  background: rgba(196, 30, 58, 0.08);
+  border-color: var(--status-critical);
+  color: var(--status-critical);
 }
 
 .action-btn.danger:hover {
-  background: rgba(255, 71, 87, 0.2);
-  box-shadow: 0 4px 20px rgba(255, 71, 87, 0.3);
+  background: var(--status-critical);
+  color: var(--bg-primary);
+  box-shadow: 0 4px 20px rgba(196, 30, 58, 0.3);
 }
 
-.about-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.btn-icon {
+  width: 18px;
+  height: 18px;
 }
 
-.info-row {
+/* ========================================
+   ABOUT GRID
+   ======================================== */
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--border-thin);
+  background: var(--border-primary);
+}
+
+.about-item {
+  background: var(--bg-elevated);
+  padding: var(--space-5);
   display: flex;
   justify-content: space-between;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  align-items: center;
 }
 
-.info-key {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
+.about-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #888;
+  color: var(--text-tertiary);
 }
 
-.info-row .info-value {
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #fff;
+.about-value {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
 }
 
-@media (max-width: 768px) {
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 900px) {
   .settings-view {
-    padding: 1rem;
+    padding: var(--space-6) var(--space-4);
   }
 
-  .theme-selector,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-title {
+    font-size: var(--text-4xl);
+  }
+}
+
+@media (max-width: 640px) {
+  .header-title {
+    font-size: var(--text-3xl);
+  }
+
+  .header-subtitle {
+    font-size: var(--text-base);
+  }
+
+  .theme-selector {
+    flex-direction: column;
+  }
+
   .density-selector {
     flex-direction: column;
+  }
+
+  .theme-btn {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .density-btn {
+    width: 100%;
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -13,10 +13,14 @@ interface Props {
   zone: string
   tasks: Task[]
   label: string
-  icon: string
+  description?: string
+  count?: number
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  description: '',
+  count: 0
+})
 
 const zoneIcons: Record<string, Component> = {
   backlog: InboxIcon,
@@ -38,10 +42,6 @@ const emit = defineEmits<{
 const isDragOver = ref(false)
 
 const taskCount = computed(() => props.tasks.length)
-
-const completedCount = computed(() => {
-  return props.tasks.filter(t => t.status === 'done').length
-})
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault()
@@ -77,30 +77,23 @@ const onTaskDragEnd = () => {
     @dragleave="onDragLeave"
     @drop="onDrop"
   >
-    <div class="column-header">
-      <div class="column-info">
-        <component :is="currentIcon" class="column-icon" />
-        <h2 class="column-title">{{ label }}</h2>
-        <span class="column-count">{{ taskCount }}</span>
-      </div>
-      <div class="column-progress" v-if="zone === 'done' && taskCount > 0">
-        <div class="progress-ring">
-          <svg viewBox="0 0 36 36">
-            <path
-              class="progress-ring-bg"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <path
-              class="progress-ring-fill"
-              :stroke-dasharray="`${(completedCount / taskCount) * 100}, 100`"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-          </svg>
-          <span class="progress-value">{{ Math.round((completedCount / taskCount) * 100) }}%</span>
+    <!-- Editorial Column Header -->
+    <header class="column-header">
+      <div class="header-top">
+        <div class="column-info">
+          <component :is="currentIcon" class="column-icon" />
+          <div class="column-text">
+            <h2 class="column-title">{{ label }}</h2>
+            <p v-if="description" class="column-description">{{ description }}</p>
+          </div>
+        </div>
+        <div class="column-badge">
+          <span class="badge-count">{{ taskCount }}</span>
         </div>
       </div>
-    </div>
+    </header>
 
+    <!-- Column Tasks -->
     <div class="column-tasks">
       <slot
         :tasks="tasks"
@@ -110,158 +103,204 @@ const onTaskDragEnd = () => {
       
       <div v-if="tasks.length === 0" class="empty-zone">
         <component :is="currentIcon" class="empty-icon" />
-        <p>Drop tasks here</p>
+        <p class="empty-text">No tasks yet</p>
+        <p class="empty-hint">Drag tasks here</p>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* ========================================
+   EDITORIAL KANBAN COLUMN
+   ======================================== */
+
 .kanban-column {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: rgba(20, 20, 20, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  min-height: 400px;
+  background: var(--bg-elevated);
+  border: var(--border-thin);
+  border-top: 3px solid var(--border-secondary);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .kanban-column.is-drag-over {
-  border-color: #00ff88;
-  background: rgba(0, 255, 136, 0.05);
+  border-color: var(--accent-primary);
+  border-top-color: var(--accent-primary);
+  box-shadow: var(--shadow-lg);
 }
 
+/* ========================================
+   COLUMN HEADER
+   ======================================== */
+
 .column-header {
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-5);
+  background: var(--bg-tertiary);
+  border-bottom: var(--border-thin);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
 }
 
 .column-info {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex: 1;
+  min-width: 0;
 }
 
 .column-icon {
   width: 20px;
   height: 20px;
-  color: #888;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.column-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .column-title {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #fff;
+}
+
+.column-description {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--font-regular);
+  line-height: var(--leading-normal);
+  color: var(--text-tertiary);
   margin: 0;
-  flex: 1;
+  font-style: italic;
 }
 
-.column-count {
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
+.column-badge {
+  flex-shrink: 0;
+}
+
+.badge-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  color: #888;
+  color: var(--text-primary);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-primary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
 }
 
-.column-progress {
-  margin-top: 0.5rem;
-  display: flex;
-  justify-content: center;
-}
-
-.progress-ring {
-  position: relative;
-  width: 36px;
-  height: 36px;
-}
-
-.progress-ring svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.progress-ring-bg {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.1);
-  stroke-width: 3;
-}
-
-.progress-ring-fill {
-  fill: none;
-  stroke: url(#gradient);
-  stroke-width: 3;
-  stroke-linecap: round;
-  transition: stroke-dasharray 0.3s ease;
-}
-
-.progress-value {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: 'Courier New', monospace;
-  font-size: 0.5rem;
-  font-weight: 700;
-  color: #00ff88;
-}
+/* ========================================
+   COLUMN TASKS
+   ======================================== */
 
 .column-tasks {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-4);
 }
 
 .column-tasks::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 .column-tasks::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-primary);
 }
 
 .column-tasks::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  background: var(--border-secondary);
+  border-radius: var(--radius-full);
 }
+
+.column-tasks::-webkit-scrollbar-thumb:hover {
+  background: var(--border-tertiary);
+}
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
 
 .empty-zone {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: var(--space-12) var(--space-6);
   text-align: center;
-  min-height: 120px;
+  min-height: 200px;
+  border: 2px dashed var(--border-secondary);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
 }
 
 .empty-icon {
-  width: 32px;
-  height: 32px;
-  color: #888;
-  opacity: 0.3;
+  width: 40px;
+  height: 40px;
+  color: var(--text-tertiary);
+  opacity: 0.4;
+  margin-bottom: var(--space-4);
 }
 
-.empty-zone p {
-  font-size: 0.75rem;
-  color: #888;
+.empty-text {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-tertiary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.empty-hint {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  color: var(--text-tertiary);
   margin: 0;
-  font-family: 'Courier New', monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-style: italic;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 640px) {
+  .kanban-column {
+    min-height: 300px;
+  }
+
+  .column-header {
+    padding: var(--space-4);
+  }
+
+  .column-title {
+    font-size: var(--text-sm);
+  }
+
+  .column-description {
+    font-size: var(--text-xs);
+  }
 }
 </style>

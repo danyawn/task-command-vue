@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import { useUIStore } from '@/stores/ui'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import type { Task } from '@/stores/tasks'
 
 const tasksStore = useTasksStore()
@@ -28,7 +29,7 @@ const firstDayOfMonth = computed(() => {
 const calendarDays = computed(() => {
   const days: Array<{ date: Date; tasks: Task[] } | null> = []
   
-  // Add empty cells for days before the first day of month
+  // Add empty cells for days before first day of month
   for (let i = 0; i < firstDayOfMonth.value; i++) {
     days.push(null)
   }
@@ -129,301 +130,363 @@ function isSelected(date: Date) {
   if (!selectedDate.value) return false
   return date.toDateString() === selectedDate.value.toDateString()
 }
+
+function getPriorityColor(priority: string): string {
+  const colors: Record<string, string> = {
+    critical: 'var(--status-critical)',
+    high: 'var(--status-high)',
+    medium: 'var(--status-medium)',
+    low: 'var(--status-low)'
+  }
+  return colors[priority] || 'var(--text-tertiary)'
+}
 </script>
 
 <template>
   <div class="calendar-view">
+    <!-- Editorial Header -->
     <header class="calendar-header">
-      <button class="nav-btn" @click="previousMonth">←</button>
-      <h1 class="calendar-title">{{ monthName }}</h1>
-      <button class="nav-btn" @click="nextMonth">→</button>
+      <div class="header-content">
+        <button class="nav-btn" @click="previousMonth" aria-label="Previous month">
+          <ChevronLeftIcon class="nav-icon" />
+        </button>
+        <div class="month-display">
+          <h1 class="month-title">{{ monthName }}</h1>
+          <p class="month-subtitle">{{ calendarDays.filter(d => d !== null).length }} days</p>
+        </div>
+        <button class="nav-btn" @click="nextMonth" aria-label="Next month">
+          <ChevronRightIcon class="nav-icon" />
+        </button>
+      </div>
+      <div class="header-divider"></div>
     </header>
 
-    <div class="calendar-grid">
-      <div class="calendar-day-header">Sun</div>
-      <div class="calendar-day-header">Mon</div>
-      <div class="calendar-day-header">Tue</div>
-      <div class="calendar-day-header">Wed</div>
-      <div class="calendar-day-header">Thu</div>
-      <div class="calendar-day-header">Fri</div>
-      <div class="calendar-day-header">Sat</div>
+    <!-- Calendar Grid -->
+    <div class="calendar-container">
+      <div class="calendar-grid">
+        <!-- Day Headers -->
+        <div class="day-header">Sun</div>
+        <div class="day-header">Mon</div>
+        <div class="day-header">Tue</div>
+        <div class="day-header">Wed</div>
+        <div class="day-header">Thu</div>
+        <div class="day-header">Fri</div>
+        <div class="day-header">Sat</div>
 
-      <div
-        v-for="(day, index) in calendarDays"
-        :key="index"
-        class="calendar-day"
-        :class="{
-          'is-today': day && isToday(day.date),
-          'is-selected': day && isSelected(day.date),
-          'has-tasks': day && day.tasks.length > 0
-        }"
-        @click="day && selectDay(day.date)"
-      >
-        <span v-if="day" class="day-number">{{ day.date.getDate() }}</span>
-        <div v-if="day && day.tasks.length > 0" class="day-tasks">
-          <div
-            v-for="task in day.tasks.slice(0, 3)"
-            :key="task.id"
-            class="task-dot"
-            :class="task.priority"
-          ></div>
-          <span v-if="day.tasks.length > 3" class="task-more">
-            +{{ day.tasks.length - 3 }}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="selectedDate" class="selected-day-panel">
-      <h2 class="panel-title">
-        {{ selectedDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) || '' }}
-      </h2>
-      <div class="day-task-list">
+        <!-- Calendar Days -->
         <div
-          v-for="task in selectedDateTasks"
-          :key="task.id"
-          class="day-task-item"
-          :class="task.priority"
-          @click="selectTask(task)"
+          v-for="(day, index) in calendarDays"
+          :key="index"
+          class="calendar-day"
+          :class="{
+            'is-today': day && isToday(day.date),
+            'is-selected': day && isSelected(day.date),
+            'has-tasks': day && day.tasks.length > 0,
+            'is-empty': !day
+          }"
+          @click="day && selectDay(day.date)"
         >
-          <div class="task-priority-dot" :class="task.priority"></div>
-          <div class="task-info">
-            <div class="task-title">{{ task.title }}</div>
-            <div class="task-status">{{ task.status }}</div>
+          <span v-if="day" class="day-number">{{ day.date.getDate() }}</span>
+          <div v-if="day && day.tasks.length > 0" class="day-tasks">
+            <div
+              v-for="task in day.tasks.slice(0, 3)"
+              :key="task.id"
+              class="task-indicator"
+              :style="{ backgroundColor: getPriorityColor(task.priority) }"
+            ></div>
+            <span v-if="day.tasks.length > 3" class="task-more">
+              +{{ day.tasks.length - 3 }}
+            </span>
           </div>
         </div>
-        <div v-if="selectedDateTasks.length === 0" class="empty-day">
-          <p>No tasks scheduled</p>
-        </div>
       </div>
+
+      <!-- Selected Day Panel -->
+      <aside v-if="selectedDate" class="day-panel">
+        <h2 class="panel-title">
+          {{ selectedDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) || '' }}
+        </h2>
+        <div class="panel-divider"></div>
+        <div class="day-task-list">
+          <div
+            v-for="task in selectedDateTasks"
+            :key="task.id"
+            class="day-task-item"
+            @click="selectTask(task)"
+          >
+            <div class="task-dot" :style="{ backgroundColor: getPriorityColor(task.priority) }"></div>
+            <div class="task-info">
+              <h3 class="task-title">{{ task.title }}</h3>
+              <span class="task-status">{{ task.status }}</span>
+            </div>
+          </div>
+          <div v-if="selectedDateTasks.length === 0" class="empty-day">
+            <p>No missions scheduled</p>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* ========================================
+   EDITORIAL CALENDAR VIEW
+   ======================================== */
+
 .calendar-view {
-  padding: 2rem;
-  max-width: 1200px;
+  padding: var(--space-8) var(--space-6);
+  max-width: 1400px;
   margin: 0 auto;
 }
 
+/* ========================================
+   EDITORIAL HEADER
+   ======================================== */
+
 .calendar-header {
+  margin-bottom: var(--space-8);
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: var(--space-6);
 }
 
 .nav-btn {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 1.25rem;
-  color: #fff;
+  background: var(--bg-elevated);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .nav-btn:hover {
-  background: rgba(0, 255, 136, 0.1);
-  border-color: #00ff88;
-  color: #00ff88;
+  background: var(--bg-tertiary);
+  border-color: var(--accent-primary);
+  transform: scale(1.05);
 }
 
-.calendar-title {
-  font-family: 'Courier New', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0;
-  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-primary);
 }
+
+.month-display {
+  flex: 1;
+  text-align: center;
+}
+
+.month-title {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  text-transform: uppercase;
+}
+
+.month-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  color: var(--text-tertiary);
+  margin: 0;
+  font-style: italic;
+}
+
+.header-divider {
+  width: 100%;
+  height: 2px;
+  background: var(--text-primary);
+  margin-top: var(--space-6);
+}
+
+/* ========================================
+   CALENDAR CONTAINER
+   ======================================== */
+
+.calendar-container {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+/* ========================================
+   CALENDAR GRID
+   ======================================== */
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: var(--border-primary);
+  border: var(--border-medium);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
-.calendar-day-header {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1rem;
+.day-header {
+  background: var(--bg-tertiary);
+  padding: var(--space-4);
   text-align: center;
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #888;
+  color: var(--text-tertiary);
 }
 
 .calendar-day {
-  background: rgba(20, 20, 20, 0.8);
+  background: var(--bg-elevated);
   min-height: 100px;
-  padding: 0.5rem;
+  padding: var(--space-3);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-2);
 }
 
-.calendar-day:hover {
-  background: rgba(255, 255, 255, 0.1);
+.calendar-day:hover:not(.is-empty) {
+  background: var(--bg-tertiary);
 }
 
 .calendar-day.is-today {
-  background: rgba(0, 255, 136, 0.05);
-  border: 2px solid #00ff88;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--accent-primary);
 }
 
 .calendar-day.is-selected {
-  background: rgba(0, 255, 136, 0.1);
-  border: 2px solid #00ff88;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--accent-primary);
+  box-shadow: inset 0 0 0 2px var(--accent-primary);
 }
 
 .calendar-day.has-tasks {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-secondary);
+}
+
+.calendar-day.is-empty {
+  background: var(--bg-primary);
+  cursor: default;
 }
 
 .day-number {
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #fff;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
 }
 
 .day-tasks {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: var(--space-1);
+  align-content: start;
 }
 
-.task-dot {
+.task-indicator {
   width: 6px;
   height: 6px;
   border-radius: 50%;
 }
 
-.task-dot.critical {
-  background: #ff4757;
-}
-
-.task-dot.high {
-  background: #ffa502;
-}
-
-.task-dot.medium {
-  background: #00d2d3;
-}
-
-.task-dot.low {
-  background: #2ed573;
-}
-
 .task-more {
-  font-family: 'Courier New', monospace;
-  font-size: 0.5rem;
-  color: #888;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-tertiary);
 }
 
-.selected-day-panel {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: rgba(20, 20, 20, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  backdrop-filter: blur(10px);
+/* ========================================
+   DAY PANEL
+   ======================================== */
+
+.day-panel {
+  background: var(--bg-elevated);
+  border: var(--border-thin);
+  border-top: 3px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  position: sticky;
+  top: var(--space-6);
 }
 
 .panel-title {
-  font-family: 'Courier New', monospace;
-  font-size: 1rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0 0 1rem 0;
-  color: #fff;
+}
+
+.panel-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-primary);
+  margin: var(--space-4) 0;
 }
 
 .day-task-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-4);
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.day-task-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.day-task-list::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.day-task-list::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: var(--radius-full);
 }
 
 .day-task-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--bg-tertiary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .day-task-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(0, 255, 136, 0.3);
+  background: var(--bg-secondary);
+  border-color: var(--accent-secondary);
   transform: translateX(4px);
 }
 
-.day-task-item.critical {
-  border-left: 3px solid #ff4757;
-}
-
-.day-task-item.high {
-  border-left: 3px solid #ffa502;
-}
-
-.day-task-item.medium {
-  border-left: 3px solid #00d2d3;
-}
-
-.day-task-item.low {
-  border-left: 3px solid #2ed573;
-}
-
-.task-priority-dot {
-  width: 8px;
-  height: 8px;
+.task-dot {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
-}
-
-.task-priority-dot.critical {
-  background: #ff4757;
-  box-shadow: 0 0 10px #ff4757;
-}
-
-.task-priority-dot.high {
-  background: #ffa502;
-}
-
-.task-priority-dot.medium {
-  background: #00d2d3;
-}
-
-.task-priority-dot.low {
-  background: #2ed573;
 }
 
 .task-info {
@@ -432,49 +495,96 @@ function isSelected(date: Date) {
 }
 
 .task-title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #fff;
-  margin-bottom: 0.25rem;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
+  line-height: var(--leading-snug);
 }
 
 .task-status {
-  font-size: 0.7rem;
-  color: #888;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
+  color: var(--text-tertiary);
 }
 
 .empty-day {
-  padding: 2rem;
+  padding: var(--space-8);
   text-align: center;
 }
 
 .empty-day p {
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
-  color: #888;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-regular);
+  color: var(--text-tertiary);
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-style: italic;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 1024px) {
+  .calendar-container {
+    grid-template-columns: 1fr;
+  }
+
+  .day-panel {
+    position: static;
+    margin-top: var(--space-6);
+  }
 }
 
 @media (max-width: 768px) {
   .calendar-view {
-    padding: 1rem;
+    padding: var(--space-6) var(--space-4);
   }
 
-  .calendar-day-header {
-    font-size: 0.5rem;
-    padding: 0.5rem;
+  .calendar-grid {
+    border-radius: var(--radius-sm);
+  }
+
+  .day-header {
+    font-size: var(--text-xs);
+    padding: var(--space-2);
   }
 
   .calendar-day {
-    min-height: 60px;
-    padding: 0.25rem;
+    min-height: 70px;
+    padding: var(--space-2);
   }
 
   .day-number {
-    font-size: 0.625rem;
+    font-size: var(--text-sm);
+  }
+
+  .month-title {
+    font-size: var(--text-2xl);
+  }
+
+  .header-content {
+    gap: var(--space-4);
+  }
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .day-header {
+    font-size: 10px;
+  }
+
+  .calendar-day {
+    min-height: 50px;
   }
 }
 </style>

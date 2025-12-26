@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import { useUIStore } from '@/stores/ui'
 import { useTaskDrag } from '@/composables/useTaskDrag'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import TaskCard from '@/components/TaskCard.vue'
 import KanbanColumn from '@/components/KanbanColumn.vue'
 import type { Task } from '@/stores/tasks'
@@ -13,12 +14,12 @@ const { dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd } 
 
 const zones = computed(() => tasksStore.tasksByZone)
 
-const zoneLabels: Record<string, { title: string; icon: string }> = {
-  backlog: { title: 'Backlog', icon: '' },
-  todo: { title: 'To Do', icon: '' },
-  'in-progress': { title: 'In Progress', icon: '' },
-  review: { title: 'Review', icon: '' },
-  done: { title: 'Done', icon: '' }
+const zoneLabels: Record<string, { title: string; description: string }> = {
+  backlog: { title: 'Backlog', description: 'Future considerations' },
+  todo: { title: 'To Do', description: 'Ready to start' },
+  'in-progress': { title: 'In Progress', description: 'Currently working' },
+  review: { title: 'Review', description: 'Under evaluation' },
+  done: { title: 'Done', description: 'Completed tasks' }
 }
 
 onMounted(() => {
@@ -32,7 +33,7 @@ function createSampleTasks() {
   const sampleTasks: Partial<Task>[] = [
     {
       title: 'System architecture review',
-      description: 'Review and approve the new system architecture proposal',
+      description: 'Review and approve new system architecture proposal',
       status: 'backlog',
       priority: 'critical',
       tags: ['architecture', 'review']
@@ -53,7 +54,7 @@ function createSampleTasks() {
     },
     {
       title: 'Dashboard redesign',
-      description: 'Redesign the main dashboard with new UI components',
+      description: 'Redesign main dashboard with new UI components',
       status: 'review',
       priority: 'medium',
       tags: ['design', 'frontend']
@@ -89,18 +90,30 @@ function selectTask(task: Task) {
 function createNewTask() {
   uiStore.setQuickAddVisible(true)
 }
+
+function getZoneCount(zone: string): number {
+  return (zones.value as Record<string, Task[]>)[zone]?.length || 0
+}
 </script>
 
 <template>
   <div class="kanban">
+    <!-- Magazine Header -->
     <header class="kanban-header">
-      <h1 class="kanban-title">Mission Board</h1>
-      <button class="btn-primary" @click="createNewTask">
-        <span class="btn-icon">+</span>
-        New Mission
-      </button>
+      <div class="header-content">
+        <div class="header-main">
+          <h1 class="header-title">Mission Board</h1>
+          <p class="header-subtitle">Track progress across all stages</p>
+        </div>
+        <button class="btn-create" @click="createNewTask">
+          <PlusIcon class="btn-icon" />
+          <span>New Mission</span>
+        </button>
+      </div>
+      <div class="header-divider"></div>
     </header>
 
+    <!-- Magazine Board Layout -->
     <div class="kanban-board">
       <KanbanColumn
         v-for="(tasks, zone) in zones"
@@ -108,7 +121,8 @@ function createNewTask() {
         :zone="zone"
         :tasks="tasks"
         :label="zoneLabels[zone]?.title || zone"
-        :icon="zoneLabels[zone]?.icon || '📌'"
+        :description="zoneLabels[zone]?.description || ''"
+        :count="getZoneCount(zone)"
         @drag-start="onTaskDragStart"
         @drag-over="handleDragOver"
         @drop="onTaskDrop"
@@ -127,92 +141,151 @@ function createNewTask() {
 </template>
 
 <style scoped>
+/* ========================================
+   EDITORIAL KANBAN LAYOUT
+   ======================================== */
+
 .kanban {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  background: #0a0a0a;
+  padding: var(--space-8) var(--space-6);
+  background: var(--bg-primary);
 }
+
+/* ========================================
+   MAGAZINE HEADER
+   ======================================== */
 
 .kanban-header {
+  margin-bottom: var(--space-8);
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  align-items: flex-start;
+  gap: var(--space-6);
 }
 
-.kanban-title {
-  font-family: 'Courier New', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
+.header-main {
+  flex: 1;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0;
-  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
-.btn-primary {
+.header-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-regular);
+  line-height: var(--leading-normal);
+  color: var(--text-tertiary);
+  margin: 0;
+  font-style: italic;
+}
+
+.btn-create {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  background: var(--text-primary);
+  color: var(--bg-primary);
   border: none;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #0a0a0a;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
-.btn-primary:hover {
+.btn-create:hover {
+  background: var(--accent-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-icon {
-  font-size: 1.25rem;
-  line-height: 1;
+  width: 18px;
+  height: 18px;
 }
+
+.header-divider {
+  width: 100%;
+  height: 2px;
+  background: var(--text-primary);
+  margin-top: var(--space-6);
+}
+
+/* ========================================
+   MAGAZINE BOARD LAYOUT
+   ======================================== */
 
 .kanban-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-6);
   flex: 1;
   overflow-x: auto;
-  padding-bottom: 1rem;
+  padding-bottom: var(--space-4);
+  align-content: start;
 }
 
-@media (max-width: 1024px) {
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 1200px) {
   .kanban-board {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .kanban {
-    padding: 1rem;
+    padding: var(--space-6) var(--space-4);
   }
 
-  .kanban-header {
+  .header-content {
     flex-direction: column;
-    gap: 1rem;
     align-items: stretch;
+  }
+
+  .header-title {
+    font-size: var(--text-3xl);
+  }
+
+  .btn-create {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .kanban {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .header-title {
+    font-size: var(--text-2xl);
   }
 
   .kanban-board {
     grid-template-columns: 1fr;
+    overflow-x: hidden;
   }
 }
 </style>

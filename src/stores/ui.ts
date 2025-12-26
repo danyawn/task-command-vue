@@ -48,7 +48,7 @@ export const useUIStore = defineStore('ui', () => {
   const notifications = ref<Array<{ id: string; message: string; type: 'success' | 'error' | 'info' | 'warning'; timestamp: number }>>([])
   const modals = ref<Record<string, boolean>>({})
   const tooltips = ref<Record<string, boolean>>({})
-
+  
   // Computed
   const isDarkMode = computed(() => {
     if (uiState.value.theme === 'auto') {
@@ -56,39 +56,39 @@ export const useUIStore = defineStore('ui', () => {
     }
     return uiState.value.theme === 'dark'
   })
-
+  
   const isSidebarVisible = computed(() => {
     return uiState.value.sidebar !== 'hidden'
   })
-
+  
   const isSidebarExpanded = computed(() => {
     return uiState.value.sidebar === 'expanded'
   })
-
+  
   const hasActiveFilters = computed(() => {
     const { status, priority, assignee } = uiState.value.activeFilters
     return status !== 'all' || priority !== 'all' || assignee !== null
   })
-
+  
   const activeNotifications = computed(() => {
     const now = Date.now()
     return notifications.value.filter(n => now - n.timestamp < 5000)
   })
-
+  
   // Actions
   const setViewMode = (mode: ViewMode) => {
     uiState.value.viewMode = mode
   }
-
+  
   const setTheme = (theme: Theme) => {
     uiState.value.theme = theme
-    applyTheme(theme)
+    applyThemeToDocument(theme)
   }
-
+  
   const setDensity = (density: Density) => {
     uiState.value.density = density
   }
-
+  
   const toggleSidebar = () => {
     if (uiState.value.sidebar === 'expanded') {
       uiState.value.sidebar = 'collapsed'
@@ -96,51 +96,51 @@ export const useUIStore = defineStore('ui', () => {
       uiState.value.sidebar = 'expanded'
     }
   }
-
+  
   const setSidebarState = (state: SidebarState) => {
     uiState.value.sidebar = state
   }
-
+  
   const toggleTaskDetails = () => {
     uiState.value.showTaskDetails = !uiState.value.showTaskDetails
   }
-
+  
   const setTaskDetailsVisible = (visible: boolean) => {
     uiState.value.showTaskDetails = visible
   }
-
+  
   const toggleFilters = () => {
     uiState.value.showFilters = !uiState.value.showFilters
   }
-
+  
   const setFiltersVisible = (visible: boolean) => {
     uiState.value.showFilters = visible
   }
-
+  
   const toggleQuickAdd = () => {
     uiState.value.showQuickAdd = !uiState.value.showQuickAdd
   }
-
+  
   const setQuickAddVisible = (visible: boolean) => {
     uiState.value.showQuickAdd = visible
   }
-
+  
   const toggleCommandPalette = () => {
     uiState.value.showCommandPalette = !uiState.value.showCommandPalette
   }
-
+  
   const setCommandPaletteVisible = (visible: boolean) => {
     uiState.value.showCommandPalette = visible
   }
-
+  
   const setSelectedZone = (zone: string | null) => {
     uiState.value.selectedZone = zone
   }
-
+  
   const setDraggedTaskId = (id: string | null) => {
     uiState.value.draggedTaskId = id
   }
-
+  
   const setActiveFilter = (key: keyof UIState['activeFilters'], value: string | null) => {
     const filterState = uiState.value.activeFilters
     if (key === 'assignee') {
@@ -149,7 +149,7 @@ export const useUIStore = defineStore('ui', () => {
       filterState[key] = value as string
     }
   }
-
+  
   const clearActiveFilters = () => {
     uiState.value.activeFilters = {
       status: 'all',
@@ -157,7 +157,7 @@ export const useUIStore = defineStore('ui', () => {
       assignee: null
     }
   }
-
+  
   // Notification actions
   const addNotification = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     const id = `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -167,77 +167,86 @@ export const useUIStore = defineStore('ui', () => {
       type,
       timestamp: Date.now()
     })
-
+    
     setTimeout(() => {
       removeNotification(id)
     }, 5000)
-
+    
     return id
   }
-
+  
   const removeNotification = (id: string) => {
     const index = notifications.value.findIndex(n => n.id === id)
     if (index !== -1) {
       notifications.value.splice(index, 1)
     }
   }
-
+  
   const clearNotifications = () => {
     notifications.value = []
   }
-
+  
   // Modal actions
   const openModal = (name: string) => {
     modals.value[name] = true
   }
-
+  
   const closeModal = (name: string) => {
     modals.value[name] = false
   }
-
+  
   const toggleModal = (name: string) => {
     modals.value[name] = !modals.value[name]
   }
-
+  
   const isModalOpen = (name: string) => {
     return modals.value[name] || false
   }
-
+  
   // Tooltip actions
   const showTooltip = (id: string) => {
     tooltips.value[id] = true
   }
-
+  
   const hideTooltip = (id: string) => {
     tooltips.value[id] = false
   }
-
+  
   const isTooltipVisible = (id: string) => {
     return tooltips.value[id] || false
   }
-
-  // Apply theme to document
-  const applyTheme = (theme: Theme) => {
+  
+  // Theme application function for document
+  const applyThemeToDocument = (theme: Theme) => {
     const html = document.documentElement
+  
+    // Remove all theme classes first
+    html.classList.remove('theme-dark', 'theme-light')
+  
     if (theme === 'auto') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      html.classList.toggle('dark', prefersDark)
+      html.classList.toggle('theme-dark', prefersDark)
+      html.classList.toggle('theme-light', !prefersDark)
     } else {
-      html.classList.toggle('dark', theme === 'dark')
+      html.classList.toggle('theme-dark', theme === 'dark')
+      html.classList.toggle('theme-light', theme === 'light')
     }
+  
+    // Store preference in localStorage for persistence across sessions
+    localStorage.setItem('theme-preference', theme)
   }
-
+  
   // Initialize theme on load
   const initTheme = () => {
-    applyTheme(uiState.value.theme)
+    applyThemeToDocument(uiState.value.theme)
     
     if (uiState.value.theme === 'auto') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      const handler = () => applyTheme('auto')
+      const handler = () => applyThemeToDocument('auto')
       mediaQuery.addEventListener('change', handler)
     }
   }
-
+  
   return {
     // State
     uiState: computed(() => uiState.value),

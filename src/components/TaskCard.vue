@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CalendarIcon } from '@heroicons/vue/24/outline'
+import { CalendarIcon, ClockIcon, UserIcon } from '@heroicons/vue/24/outline'
 import type { Task } from '@/stores/tasks'
 import type { Priority } from '@/stores/tasks'
 
@@ -20,17 +20,17 @@ const emit = defineEmits<{
 }>()
 
 const priorityColors: Record<Priority, string> = {
-  critical: '#ff4757',
-  high: '#ffa502',
-  medium: '#00d2d3',
-  low: '#2ed573'
+  critical: 'var(--status-critical)',
+  high: 'var(--status-high)',
+  medium: 'var(--status-medium)',
+  low: 'var(--status-low)'
 }
 
 const priorityLabels: Record<Priority, string> = {
-  critical: 'CRITICAL',
-  high: 'HIGH',
-  medium: 'MEDIUM',
-  low: 'LOW'
+  critical: 'Critical',
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low'
 }
 
 const completedSubtasks = computed(() => {
@@ -81,7 +81,7 @@ function onClick() {
 </script>
 
 <template>
-  <div
+  <article
     class="task-card"
     :class="{ 'is-dragging': isDragging, 'is-overdue': isOverdue }"
     draggable="true"
@@ -89,230 +89,370 @@ function onClick() {
     @dragend="onDragEnd"
     @click="onClick"
   >
-    <div class="task-header">
-      <div class="task-priority" :style="{ borderColor: priorityColors[task.priority] }">
-        {{ priorityLabels[task.priority] }}
+    <!-- Card Header - Editorial Style -->
+    <header class="card-header">
+      <div class="header-left">
+        <span class="priority-badge" :style="{ color: priorityColors[task.priority] }">
+          {{ priorityLabels[task.priority] }}
+        </span>
+        <span v-if="isOverdue" class="overdue-badge">
+          <ClockIcon class="overdue-icon" />
+          Overdue
+        </span>
       </div>
-      <div v-if="isOverdue" class="task-overdue">OVERDUE</div>
-    </div>
+      <div class="header-right">
+        <span class="card-number">#{{ task.id.slice(0, 6) }}</span>
+      </div>
+    </header>
 
-    <h3 class="task-title">{{ task.title }}</h3>
+    <!-- Article Title -->
+    <h3 class="card-title">{{ task.title }}</h3>
 
-    <p v-if="task.description" class="task-description">
+    <!-- Article Excerpt -->
+    <p v-if="task.description" class="card-excerpt">
       {{ task.description }}
     </p>
 
-    <div v-if="task.tags.length > 0" class="task-tags">
-      <span
-        v-for="tag in task.tags.slice(0, 3)"
-        :key="tag"
-        class="task-tag"
-      >
-        {{ tag }}
-      </span>
-      <span v-if="task.tags.length > 3" class="task-tag more">
-        +{{ task.tags.length - 3 }}
-      </span>
+    <!-- Tags Section -->
+    <div v-if="task.tags.length > 0" class="tags-section">
+      <div class="tags-list">
+        <span
+          v-for="tag in task.tags.slice(0, 3)"
+          :key="tag"
+          class="tag"
+        >
+          {{ tag }}
+        </span>
+        <span v-if="task.tags.length > 3" class="tag more">
+          +{{ task.tags.length - 3 }}
+        </span>
+      </div>
     </div>
 
-    <div v-if="task.subtasks.length > 0" class="task-progress">
-      <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: `${progress}%` }"></div>
+    <!-- Progress Section -->
+    <div v-if="task.subtasks.length > 0" class="progress-section">
+      <div class="progress-header">
+        <span class="progress-label">Progress</span>
+        <span class="progress-value">{{ completedSubtasks }}/{{ task.subtasks.length }}</span>
       </div>
-      <span class="progress-text">{{ completedSubtasks }}/{{ task.subtasks.length }}</span>
+      <div class="progress-track">
+        <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
+      </div>
     </div>
 
-    <div class="task-footer">
-      <div v-if="formattedDueDate" class="task-due-date" :class="{ overdue: isOverdue }">
-        <CalendarIcon class="due-icon" />
-        {{ formattedDueDate }}
+    <!-- Article Footer -->
+    <footer class="card-footer">
+      <div v-if="formattedDueDate" class="footer-left">
+        <CalendarIcon class="footer-icon" />
+        <span class="footer-text" :class="{ overdue: isOverdue }">{{ formattedDueDate }}</span>
       </div>
-      <div v-if="task.assignee" class="task-assignee">
-        <span class="assignee-avatar">{{ task.assignee.charAt(0).toUpperCase() }}</span>
+      <div class="footer-right">
+        <div v-if="task.assignee" class="assignee">
+          <UserIcon class="assignee-icon" />
+          <span class="assignee-name">{{ task.assignee }}</span>
+        </div>
       </div>
-    </div>
-  </div>
+    </footer>
+  </article>
 </template>
 
 <style scoped>
+/* ========================================
+   EDITORIAL TASK CARD
+   ======================================== */
+
 .task-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 1rem;
+  background: var(--bg-elevated);
+  border: var(--border-thin);
+  border-left: 3px solid transparent;
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
   cursor: grab;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
   user-select: none;
+  position: relative;
 }
 
 .task-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(0, 255, 136, 0.3);
+  border-color: var(--accent-secondary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .task-card.is-dragging {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: grabbing;
-  transform: rotate(3deg);
+  transform: rotate(1deg) scale(0.98);
 }
 
 .task-card.is-overdue {
-  border-left: 3px solid #ff4757;
+  border-left-color: var(--status-critical);
 }
 
-.task-header {
+/* ========================================
+   CARD HEADER
+   ======================================== */
+
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
-  gap: 0.5rem;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-thin);
 }
 
-.task-priority {
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid;
-  border-radius: 2px;
-}
-
-.task-overdue {
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #ff4757;
-}
-
-.task-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #fff;
-  margin: 0 0 0.5rem 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.task-description {
-  font-size: 0.75rem;
-  color: #888;
-  margin: 0 0 0.75rem 0;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.task-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  margin-bottom: 0.75rem;
-}
-
-.task-tag {
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.5rem;
-  background: rgba(0, 255, 136, 0.1);
-  color: #00ff88;
-  border-radius: 2px;
-}
-
-.task-tag.more {
-  background: rgba(255, 255, 255, 0.1);
-  color: #888;
-}
-
-.task-progress {
+.header-left {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.priority-badge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-tertiary);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+}
+
+.overdue-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--status-critical);
+  padding: var(--space-1) var(--space-3);
+  background: rgba(196, 30, 58, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.overdue-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.card-number {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-regular);
+  color: var(--text-tertiary);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* ========================================
+   CARD TITLE
+   ======================================== */
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ========================================
+   CARD EXCERPT
+   ======================================== */
+
+.card-excerpt {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4) 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ========================================
+   TAGS SECTION
+   ======================================== */
+
+.tags-section {
+  margin-bottom: var(--space-4);
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.tag:hover {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-color: var(--border-secondary);
+}
+
+.tag.more {
+  background: var(--bg-primary);
+  color: var(--text-tertiary);
+  border-style: dashed;
+}
+
+/* ========================================
+   PROGRESS SECTION
+   ======================================== */
+
+.progress-section {
+  margin-bottom: var(--space-4);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.progress-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.progress-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
 }
 
 .progress-bar {
-  flex: 1;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #00ff88 0%, #00ccff 100%);
-  border-radius: 2px;
-  transition: width 0.3s ease;
+  background: var(--accent-secondary);
+  border-radius: var(--radius-full);
+  transition: width var(--transition-base);
 }
 
-.progress-text {
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  color: #888;
-  white-space: nowrap;
-}
+/* ========================================
+   CARD FOOTER
+   ======================================== */
 
-.task-footer {
+.card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: var(--space-4);
+  border-top: var(--border-thin);
 }
 
-.task-due-date {
+.footer-left {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #888;
+  gap: var(--space-2);
 }
 
-.task-due-date.overdue {
-  color: #ff4757;
-}
-
-.due-icon {
+.footer-icon {
   width: 14px;
   height: 14px;
+  color: var(--text-tertiary);
 }
 
-.task-assignee {
+.footer-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.footer-text.overdue {
+  color: var(--status-critical);
+  font-weight: var(--font-semibold);
+}
+
+.footer-right {
   display: flex;
   align-items: center;
 }
 
-.assignee-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+.assignee {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-family: 'Courier New', monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: #0a0a0a;
+  gap: var(--space-2);
+}
+
+.assignee-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+}
+
+.assignee-name {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 640px) {
+  .task-card {
+    padding: var(--space-4);
+  }
+
+  .card-title {
+    font-size: var(--text-sm);
+  }
+
+  .card-excerpt {
+    font-size: var(--text-xs);
+  }
 }
 </style>

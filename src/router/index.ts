@@ -4,6 +4,10 @@ import { useUIStore } from '@/stores/ui'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
+    redirect: '/dashboard'
+  },
+  {
+    path: '/dashboard',
     name: 'dashboard',
     component: () => import('@/views/DashboardView.vue'),
     meta: { title: 'Dashboard' }
